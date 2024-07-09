@@ -43,7 +43,7 @@ def remove_stopwords(text, language='english'):
     filtered_words = [word for word in words if word.lower() not in stop_words]
     return ' '.join(filtered_words)
 
-def find_keyword_snippets(text, keyword, snippet_length=10):
+def find_keyword_snippets(text, keyword, snippet_length=17):
     snippets = []
     words = text.split()
     
@@ -76,7 +76,7 @@ def find_keyword_snippets(text, keyword, snippet_length=10):
     return "\n\n\n".join(snippets)
 
 
-def process_results(results, keyword, snippet_length=10):
+def process_results(results, keyword, snippet_length=17):
     processed_results = []
     
     for result in results:
