@@ -76,7 +76,7 @@ def find_keyword_snippets(text, keyword, snippet_length=17):
     return "\n\n\n".join(snippets)
 
 
-def process_results(results, keyword, snippet_length=17):
+def process_results(results, keyword, snippet_length=10):
     processed_results = []
     
     for result in results:
@@ -113,10 +113,10 @@ def main():
         if search_text:          
             dense = get_embedding(search_text)
             sparse = bm25.encode_queries(search_text)
-            hdense, hsparse = hybrid_scale(dense, sparse, alpha=0)
+            hdense, hsparse = hybrid_scale(dense, sparse, alpha=0.05)
 
             query_result = index.query(
-                top_k=6,
+                top_k=17,
                 vector=hdense,
                 sparse_vector=hsparse,
                 namespace='sparse',
@@ -162,7 +162,7 @@ def main():
             #             results.append({"Score": score, "AI Summary": summary, "URL": url})
             # st.text('Unranked Results')
             # st.table(pd.DataFrame(processed_results_1))
-            st.text('Reranked Results')
+           # st.text('Reranked Results')
             st.table(pd.DataFrame(processed_results))
 if __name__ == "__main__":
     main()
