@@ -43,37 +43,39 @@ def remove_stopwords(text, language='english'):
     filtered_words = [word for word in words if word.lower() not in stop_words]
     return ' '.join(filtered_words)
 
-import re
-
 def find_keyword_snippets(text, keyword, snippet_length=5):
+    snippets = []
     words = text.split()
-    pattern = r'\b' + re.escape(keyword) + r'\b'
     
-    for match in re.finditer(pattern, text, re.IGNORECASE):
-        start_idx = match.start()
-        end_idx = match.end()
-        
-        # Calculate word indices
-        start_word_idx = len(text[:start_idx].split())
-        end_word_idx = len(text[:end_idx].split())
-        
-        # Determine snippet bounds
-        snippet_start_idx = max(start_word_idx - snippet_length, 0)
-        snippet_end_idx = min(end_word_idx + snippet_length, len(words))
-        
-        snippet_words = words[snippet_start_idx:snippet_end_idx]
-        snippet = ' '.join(snippet_words)
-        
-        # Highlight the keyword in the snippet
-        highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
-        if snippet_start_idx > 0:
-            highlighted_snippet = "\n..." + highlighted_snippet
-        if snippet_end_idx < len(words):
-            highlighted_snippet = highlighted_snippet + "...\n"
-        
-        return highlighted_snippet  # Return the first highlighted snippet
+    search_patterns = [r'\b' + re.escape(keyword) + r'\b'] + [r'\b' + re.escape(word) + r'\b' for word in keyword.split()]
+    found_snippets = set()
+    for pattern in search_patterns:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            start_idx = match.start()
+            end_idx = match.end()
+            start_word_idx = len(text[:start_idx].split())
+            end_word_idx = len(text[:end_idx].split())
+            snippet_start_idx = max(start_word_idx - snippet_length, 0)
+            snippet_end_idx = min(end_word_idx + snippet_length, len(words))
+            
+            snippet_words = words[snippet_start_idx:snippet_end_idx]
+            snippet = ' '.join(snippet_words)
+            
+            # Highlight the keyword
+            # highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
+            # if snippet_start_idx > 0:
+            #     highlighted_snippet = "\n..." + highlighted_snippet
+            # if snippet_end_idx < len(words):
+            #     highlighted_snippet = highlighted_snippet + "...\n"
+            
+            # # Only add unique snippets
+            # if highlighted_snippet not in found_snippets:
+            #     snippets.append(highlighted_snippet)
+            #     found_snippets.add(highlighted_snippet)
     
-    return ""  # Return an empty string if no match is found
+            return snippet
+    return ""
+
 
 def process_results(results, keyword, snippet_length=5):
     processed_results = []
