@@ -62,7 +62,7 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
             snippet = ' '.join(snippet_words)
             
             # Highlight the keyword
-            # highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
+            highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
             # if snippet_start_idx > 0:
             #     highlighted_snippet = "\n..." + highlighted_snippet
             # if snippet_end_idx < len(words):
@@ -73,7 +73,7 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
             #     snippets.append(highlighted_snippet)
             #     found_snippets.add(highlighted_snippet)
     
-            return snippet
+            return highlighted_snippet
     return ""
 
 
