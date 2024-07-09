@@ -59,14 +59,14 @@ def find_keyword_snippets(text, keyword, snippet_length=17):
             snippet_end_idx = min(end_word_idx + snippet_length, len(words))
             
             snippet_words = words[snippet_start_idx:snippet_end_idx]
-            snippet = ' \n'.join(snippet_words)
+            snippet = ' '.join(snippet_words)
             
             # Highlight the keyword
             highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
             if snippet_start_idx > 0:
-                highlighted_snippet = "..." + highlighted_snippet
+                highlighted_snippet = "\n..." + highlighted_snippet
             if snippet_end_idx < len(words):
-                highlighted_snippet = highlighted_snippet + "..."
+                highlighted_snippet = highlighted_snippet + "...\n"
             
             # Only add unique snippets
             if highlighted_snippet not in found_snippets:
