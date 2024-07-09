@@ -37,6 +37,7 @@ def hybrid_scale(dense, sparse, alpha: float):
     hdense = [v * alpha for v in dense]
     return hdense, hsparse
 
+<<<<<<< HEAD
 def remove_stopwords(text, language='english'):
     stop_words = set(stopwords.words(language))
     words = text.split()
@@ -44,6 +45,10 @@ def remove_stopwords(text, language='english'):
     return ' '.join(filtered_words)
 
 def find_keyword_snippets(text, keyword, snippet_length=10):
+=======
+def find_keyword_snippets(text, keyword, snippet_length=100):
+    import re
+>>>>>>> c1137de68bc0ba92394726afe43fb9c7a6cacaf5
     snippets = []
     words = text.split()
     
