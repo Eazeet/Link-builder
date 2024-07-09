@@ -1,12 +1,15 @@
 import streamlit as st
 from pinecone import Pinecone
 import re
+import nltk
+from nltk.corpus import stopwords
 import pandas as pd
 from openai import OpenAI
 from pinecone_text.sparse import BM25Encoder
 
 # Read the data
 df = pd.read_csv('preprocessed_data_cleaned.csv')
+nltk.download('stopwords')
 
 # Initialize BM25Encoder
 bm25 = BM25Encoder()
@@ -34,49 +37,72 @@ def hybrid_scale(dense, sparse, alpha: float):
     hdense = [v * alpha for v in dense]
     return hdense, hsparse
 
-def find_keyword_snippets(text, keyword, snippet_length=200):
-    import re
+def remove_stopwords(text, language='english'):
+    stop_words = set(stopwords.words(language))
+    words = text.split()
+    filtered_words = [word for word in words if word.lower() not in stop_words]
+    return ' '.join(filtered_words)
+
+def find_keyword_snippets(text, keyword, snippet_length=10):
     snippets = []
+    words = text.split()
     
-    # Create a list of search patterns: the entire keyword and individual words
-    search_patterns = [keyword] + keyword.split()
-    
-    # Find all occurrences of the search patterns in the text
+    search_patterns = [r'\b' + re.escape(keyword) + r'\b'] + [r'\b' + re.escape(word) + r'\b' for word in keyword.split()]
+    found_snippets = set()
     for pattern in search_patterns:
-        for match in re.finditer(re.escape(pattern), text, re.IGNORECASE):
-            start = max(match.start() - snippet_length, 0)
-            end = min(match.end() + snippet_length, len(text))
-            snippet = text[start:end]
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            start_idx = match.start()
+            end_idx = match.end()
+            start_word_idx = len(text[:start_idx].split())
+            end_word_idx = len(text[:end_idx].split())
+            snippet_start_idx = max(start_word_idx - snippet_length, 0)
+            snippet_end_idx = min(end_word_idx + snippet_length, len(words))
+            
+            snippet_words = words[snippet_start_idx:snippet_end_idx]
+            snippet = ' '.join(snippet_words)
             
             # Highlight the keyword
-            highlighted_snippet = re.sub(re.escape(pattern), f"**{pattern}**", snippet, flags=re.IGNORECASE)
+            highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
+            if snippet_start_idx > 0:
+                highlighted_snippet = "\n..." + highlighted_snippet
+            if snippet_end_idx < len(words):
+                highlighted_snippet = highlighted_snippet + "...\n"
             
-            # Add ellipses if the snippet is not at the start or end of the text
-            if start > 0:
-                highlighted_snippet = "..." + highlighted_snippet
-            if end < len(text):
-                highlighted_snippet = highlighted_snippet + "..."
-                
-            snippets.append(highlighted_snippet)
+            # Only add unique snippets
+            if highlighted_snippet not in found_snippets:
+                snippets.append(highlighted_snippet)
+                found_snippets.add(highlighted_snippet)
     
-    return " ".join(snippets)
+    return "\n\n\n".join(snippets)
 
-def process_results(results, keyword, snippet_length=50):
+
+def process_results(results, keyword, snippet_length=10):
     processed_results = []
     
     for result in results:
-        text = result["Text"]
+        url = result['URL']
+        text = result['Text']
+        # if url.endswith('/'):
+        #     url = url.rstrip('/')
+        
+        # parts = url.rsplit('/', 1)  # Split on the last slash
+        # title = parts[-1] if len(parts) > 1 else url
+        # if not title:
+        #     title = "Untitled"
+        
         snippets = find_keyword_snippets(text, keyword, snippet_length)
         processed_result = {"URL": result["URL"], "Snippets": snippets}
         processed_results.append(processed_result)
     
     return processed_results
 
+
 def main():
     st.title("Pinecone Search Application")
     
     search_text = st.text_input("Enter search text:")
-    search_intent = st.text_input("Enter your search intent")
+    search_text = remove_stopwords(search_text)
+    #search_intent = st.text_input("Enter your search intent")
     #top_k = st.number_input("Enter top_k:", min_value=1, value=5)
     
     openai_api_key = st.text_input("Enter OpenAI API Key:", type="password")
@@ -108,7 +134,7 @@ def main():
                 results_1.append({"Text": text, "URL": url})
             processed_results_1 = process_results(results_1, keyword=search_text)
             docs = [x["metadata"]['text'] for x in query_result['matches']]
-            rerank_docs = co.rerank(query=search_intent, documents=docs, top_n=10, model="rerank-english-v2.0")
+            rerank_docs = co.rerank(query=search_text, documents=docs, top_n=10, model="rerank-english-v2.0")
             docs_reranked = [query_result['matches'][result.index] for result in rerank_docs.results]
             results = []
             displayed_urls = set()
@@ -134,8 +160,8 @@ def main():
             #         summary = refine_results(text, search_intent)
             #         if is_relevant(summary, search_intent):
             #             results.append({"Score": score, "AI Summary": summary, "URL": url})
-            st.text('Unranked Results')
-            st.table(pd.DataFrame(processed_results_1))
+            # st.text('Unranked Results')
+            # st.table(pd.DataFrame(processed_results_1))
             st.text('Reranked Results')
             st.table(pd.DataFrame(processed_results))
 if __name__ == "__main__":
