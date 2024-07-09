@@ -43,6 +43,8 @@ def remove_stopwords(text, language='english'):
     filtered_words = [word for word in words if word.lower() not in stop_words]
     return ' '.join(filtered_words)
 
+import re
+
 def find_keyword_snippets(text, keyword, snippet_length=5):
     words = text.split()
     pattern = r'\b' + re.escape(keyword) + r'\b'
@@ -50,25 +52,28 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
     for match in re.finditer(pattern, text, re.IGNORECASE):
         start_idx = match.start()
         end_idx = match.end()
+        
+        # Calculate word indices
         start_word_idx = len(text[:start_idx].split())
         end_word_idx = len(text[:end_idx].split())
+        
+        # Determine snippet bounds
         snippet_start_idx = max(start_word_idx - snippet_length, 0)
         snippet_end_idx = min(end_word_idx + snippet_length, len(words))
         
         snippet_words = words[snippet_start_idx:snippet_end_idx]
         snippet = ' '.join(snippet_words)
         
-        # Highlight the keyword
+        # Highlight the keyword in the snippet
         highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
         if snippet_start_idx > 0:
             highlighted_snippet = "\n..." + highlighted_snippet
         if snippet_end_idx < len(words):
             highlighted_snippet = highlighted_snippet + "...\n"
         
-        return highlighted_snippet 
+        return highlighted_snippet  # Return the first highlighted snippet
     
-    return ""  
-
+    return ""  # Return an empty string if no match is found
 
 def process_results(results, keyword, snippet_length=5):
     processed_results = []
@@ -110,7 +115,7 @@ def main():
             hdense, hsparse = hybrid_scale(dense, sparse, alpha=0.05)
 
             query_result = index.query(
-                top_k=20,
+                top_k=17,
                 vector=hdense,
                 sparse_vector=hsparse,
                 namespace='sparse',
@@ -128,7 +133,7 @@ def main():
                 results_1.append({"Text": text, "URL": url})
             processed_results_1 = process_results(results_1, keyword=search_text)
             docs = [x["metadata"]['text'] for x in query_result['matches']]
-            rerank_docs = co.rerank(query=search_text, documents=docs, top_n=20, model="rerank-english-v2.0")
+            rerank_docs = co.rerank(query=search_text, documents=docs, top_n=17, model="rerank-english-v2.0")
             docs_reranked = [query_result['matches'][result.index] for result in rerank_docs.results]
             results = []
             displayed_urls = set()
