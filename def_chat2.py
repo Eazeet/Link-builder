@@ -113,7 +113,7 @@ def main():
         if search_text:          
             dense = get_embedding(search_text)
             sparse = bm25.encode_queries(search_text)
-            hdense, hsparse = hybrid_scale(dense, sparse, alpha=0)
+            hdense, hsparse = hybrid_scale(dense, sparse, alpha=0.05)
 
             query_result = index.query(
                 top_k=17,
