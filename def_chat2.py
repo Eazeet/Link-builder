@@ -34,7 +34,7 @@ def hybrid_scale(dense, sparse, alpha: float):
     hdense = [v * alpha for v in dense]
     return hdense, hsparse
 
-def find_keyword_snippets(text, keyword, snippet_length=200):
+def find_keyword_snippets(text, keyword, snippet_length=100):
     import re
     snippets = []
     
