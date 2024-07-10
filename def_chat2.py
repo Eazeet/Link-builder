@@ -113,6 +113,9 @@ def process_results(results, keyword, snippet_length=5):
     
     return processed_results
 
+def remove_empty_snippets(df):
+    df_cleaned = df[df['Snippet'].str.strip() != '']
+    return df_cleaned
 
 def main():
     st.title("Pinecone Search Application")
@@ -179,7 +182,9 @@ def main():
             #             results.append({"Score": score, "AI Summary": summary, "URL": url})
             # st.text('Unranked Results')
             # st.table(pd.DataFrame(processed_results_1))
-           # st.text('Reranked Results')
-            st.table(pd.DataFrame(processed_results))
+            # st.text('Reranked Results')
+            processed_results = pd.DataFrame(processed_results)
+            cleaned_result = remove_empty_snippets(processed_results)
+            st.table(cleaned_result)
 if __name__ == "__main__":
     main()
