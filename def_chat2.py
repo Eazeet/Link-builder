@@ -136,7 +136,7 @@ def main():
             hdense, hsparse = hybrid_scale(dense, sparse, alpha=0.05)
 
             query_result = index.query(
-                top_k=20,
+                top_k=25,
                 vector=hdense,
                 sparse_vector=hsparse,
                 namespace='sparse',
@@ -154,7 +154,7 @@ def main():
                 results_1.append({"Text": text, "URL": url})
             processed_results_1 = process_results(results_1, keyword=search_text)
             docs = [x["metadata"]['text'] for x in query_result['matches']]
-            rerank_docs = co.rerank(query=search_text, documents=docs, top_n=20, model="rerank-english-v2.0")
+            rerank_docs = co.rerank(query=search_text, documents=docs, top_n=25, model="rerank-english-v2.0")
             docs_reranked = [query_result['matches'][result.index] for result in rerank_docs.results]
             results = []
             displayed_urls = set()
