@@ -3,6 +3,7 @@ from pinecone import Pinecone
 import re
 import nltk
 from nltk.corpus import stopwords
+from nltk.corpus import wordnet
 import pandas as pd
 from openai import OpenAI
 from pinecone_text.sparse import BM25Encoder
@@ -10,6 +11,8 @@ from pinecone_text.sparse import BM25Encoder
 # Read the data
 df = pd.read_csv('preprocessed_data_cleaned.csv')
 nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 # Initialize BM25Encoder
 bm25 = BM25Encoder()
@@ -43,11 +46,23 @@ def remove_stopwords(text, language='english'):
     filtered_words = [word for word in words if word.lower() not in stop_words]
     return ' '.join(filtered_words)
 
+def get_keyword_variations(keyword):
+    variations = set()
+    words = keyword.split()  # Split phrase into individual words
+    for word in words:
+        for syn in wordnet.synsets(word):
+            for lemma in syn.lemmas():
+                variations.add(lemma.name().replace('_', ' '))
+        variations.add(word)  # Include the original word
+
+    return list(variations)
+
 def find_keyword_snippets(text, keyword, snippet_length=5):
     snippets = []
     words = text.split()
     
-    search_patterns = [r'\b' + re.escape(keyword) + r'\b'] + [r'\b' + re.escape(word) + r'\b' for word in keyword.split()]
+    keyword_variations = get_keyword_variations(keyword)
+    search_patterns = [r'\b' + re.escape(word) + r'\b' for word in set(keyword_variations)]
     found_snippets = set()
     for pattern in search_patterns:
         for match in re.finditer(pattern, text, re.IGNORECASE):
