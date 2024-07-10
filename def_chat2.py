@@ -89,7 +89,7 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
             #     found_snippets.add(highlighted_snippet)
     
             return highlighted_snippet
-    return ""
+    return text
 
 
 def process_results(results, keyword, snippet_length=5):
