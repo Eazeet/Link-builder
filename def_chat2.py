@@ -114,7 +114,7 @@ def process_results(results, keyword, snippet_length=5):
     return processed_results
 
 def remove_empty_snippets(df):
-    df_cleaned = df[df['Snippet'].str.strip() != '']
+    df_cleaned = df[df['Snippets'].str.strip() != '']
     return df_cleaned
 
 def main():
