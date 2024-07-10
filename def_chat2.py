@@ -60,38 +60,57 @@ def get_keyword_variations(keyword):
 def find_keyword_snippets(text, keyword, snippet_length=5):
     snippets = []
     words = text.split()
-    
-    keyword_variations = get_keyword_variations(keyword)
-    search_patterns = [r'\b' + re.escape(word) + r'\b' for word in set(keyword_variations)]
-    found_snippets = set()
-    for pattern in search_patterns:
-        for match in re.finditer(pattern, text, re.IGNORECASE):
-            start_idx = match.start()
-            end_idx = match.end()
-            start_word_idx = len(text[:start_idx].split())
-            end_word_idx = len(text[:end_idx].split())
-            snippet_start_idx = max(start_word_idx - snippet_length, 0)
-            snippet_end_idx = min(end_word_idx + snippet_length, len(words))
-            
-            snippet_words = words[snippet_start_idx:snippet_end_idx]
-            snippet = ' '.join(snippet_words)
-            
-            # Highlight the keyword
-            highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
-            # if snippet_start_idx > 0:
-            #     highlighted_snippet = "\n..." + highlighted_snippet
-            # if snippet_end_idx < len(words):
-            #     highlighted_snippet = highlighted_snippet + "...\n"
-            
-            # # Only add unique snippets
-            # if highlighted_snippet not in found_snippets:
-            #     snippets.append(highlighted_snippet)
-            #     found_snippets.add(highlighted_snippet)
-    
-            return highlighted_snippet
-    # first_n_words = words[:5]    
-    return " "
 
+    # First, check for the whole phrase
+    phrase_pattern = r'\b' + re.escape(keyword) + r'\b'
+    match = re.search(phrase_pattern, text, re.IGNORECASE)
+    
+    if match:
+        # If the whole phrase is found, highlight it as a unit
+        start_idx = match.start()
+        end_idx = match.end()
+        start_word_idx = len(text[:start_idx].split())
+        end_word_idx = len(text[:end_idx].split())
+        snippet_start_idx = max(start_word_idx - snippet_length, 0)
+        snippet_end_idx = min(end_word_idx + snippet_length, len(words))
+
+        snippet_words = words[snippet_start_idx:snippet_end_idx]
+        snippet = ' '.join(snippet_words)
+
+        # Highlight the whole phrase
+        highlighted_snippet = re.sub(phrase_pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
+        
+        return highlighted_snippet
+    else:
+        # If the whole phrase is not found, search for individual words and their variations
+        keyword_variations = get_keyword_variations(keyword)
+        search_patterns = [r'\b' + re.escape(word) + r'\b' for word in set(keyword_variations)]
+        found_snippets = set()
+        
+        for pattern in search_patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                start_idx = match.start()
+                end_idx = match.end()
+                start_word_idx = len(text[:start_idx].split())
+                end_word_idx = len(text[:end_idx].split())
+                snippet_start_idx = max(start_word_idx - snippet_length, 0)
+                snippet_end_idx = min(end_word_idx + snippet_length, len(words))
+
+                snippet_words = words[snippet_start_idx:snippet_end_idx]
+                snippet = ' '.join(snippet_words)
+
+                # Highlight the keyword
+                highlighted_snippet = re.sub(pattern, f"**{match.group(0)}**", snippet, flags=re.IGNORECASE)
+                
+                # Only add unique snippets
+                if highlighted_snippet not in found_snippets:
+                    snippets.append(highlighted_snippet)
+                    found_snippets.add(highlighted_snippet)
+        
+        if snippets:
+            return snippets
+        else:
+            return " "
 
 def process_results(results, keyword, snippet_length=5):
     processed_results = []
