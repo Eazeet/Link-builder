@@ -89,8 +89,8 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
             #     found_snippets.add(highlighted_snippet)
     
             return highlighted_snippet
-    first_n_words = words[:5]    
-    return ' '.join(first_n_words)
+    # first_n_words = words[:5]    
+    return " "
 
 
 def process_results(results, keyword, snippet_length=5):
