@@ -108,7 +108,7 @@ def find_keyword_snippets(text, keyword, snippet_length=5):
                     found_snippets.add(highlighted_snippet)
         
         if snippets:
-            return snippets
+            return '\n'.join(snippets)
         else:
             return " "
 
