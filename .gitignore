@@ -4,3 +4,4 @@ keyword_included.csv
 start.ipynb
 main.py
 test.py
+.env

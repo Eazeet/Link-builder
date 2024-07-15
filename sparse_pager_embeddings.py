@@ -4,16 +4,22 @@ import pandas as pd
 
 bm25 = BM25Encoder()
 
-
 def main():
-    data=pd.read_csv('data_cleaned.csv')
-    bm25.fit(data['cleaned_text'])
-    sparse_embeds = bm25.encode_documents([data['cleaned_text']])
-    data['keywords']=sparse_embeds
+    data = pd.read_csv('preprocessed_cleaned_data.csv')
+    
+    text_chunks = data['text_chunk'].astype(str).tolist()
+    
+    # Fit the encoder
+    bm25.fit(text_chunks)
+    
+    # Encode the documents
+    sparse_embeds = bm25.encode_documents(text_chunks)
+    
+    # Add the keywords to the DataFrame
+    data['keywords'] = sparse_embeds
+    
+    # Save the DataFrame to a new CSV file
+    data.to_csv('data_with_keywords.csv', index=False)
 
-    data.to_csv('data_with_keywords.csv')
-
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
